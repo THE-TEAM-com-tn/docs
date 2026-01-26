@@ -12,22 +12,97 @@ description: 'Example section for showcasing API endpoints'
 
 There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
 
-## Authentication
+## Jump right in - Our APIs
+Welcome to the official API documentation for the-team.tn, Tunisia's pioneering Learning Management System (LMS). This guide is designed to help developers integrate and extend the functionality of our LMS using our robust API.
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+## About the-team.tn - LMS application
+The-team.tn is the first LMS developed in Tunisia, aimed at providing a comprehensive platform for online education. It offers a wide range of features tailored to meet the needs of both educators and learners. Our LMS is highly customizable, allowing clients to adapt the platform to their specific requirements. Similar to platforms like Udemy, the-team.tn enables the creation, management, and delivery of courses, making quality education accessible to all.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+## API Overview
+The the-team.tn API is a RESTful interface built with Laravel 10, providing a reliable and scalable way to interact with the LMS programmatically. It serves as the backbone for our Flutter web and mobile applications, ensuring seamless data synchronization across platforms. The API allows developers to manage users, courses, orders, and more, offering full control over the LMS's features.
+
+## Key Features
+**- Comprehensive User Management:** Handle user registration, authentication, roles, and permissions.
+
+**- Rich Course Management:** Create and manage courses, including chapters, lessons, quizzes, and certifications.
+
+**- Flexible Organization:** Use categories and tags to organize content effectively.
+
+**- E-commerce Integration:** Manage orders, apply coupons, and handle vouchers for course purchases.
+
+**- Customization Options:** Tailor the platform's configuration, themes, and landing pages to suit your needs.
+
+**- Notification System:** Keep users informed with timely notifications.
+
+**- File Handling:** Upload and manage files securely, with support for Cloudflare R2 storage.
+
+**- Insightful Dashboards:** Access analytics and insights for administrators and instructors.
+
+## Getting Started
+To begin using the the-team.tn API, you'll need:
+
+- An API key for authentication, managed via Laravel Sanctum.
+
+- The base URL of the [API](https://api.the-team.tn/v1)
+
+- A basic understanding of RESTful API principles and JSON data format.
+
+For detailed instructions on authentication and making your first API call, refer to the Authentication and Quick Start sections.
+
+
+## Documentation Structure
+This documentation is organized into the following sections, reflecting the API structure as grouped in Postman:
+
+**- Root:** General endpoints for basic API interactions.
+ 
+**- Auth:** Authentication endpoints for user login, registration, and password management.
+ 
+**- Users:** Manage user profiles, roles, and related data.
+ 
+**- Orders & Coupons & Vouchers:** Handle e-commerce functionalities like orders, discounts, and vouchers.
+ 
+**- Companies:** Manage multiple companies or tenants within the platform.
+ 
+**- LandingPage:** Customize and manage landing page components such as headers, footers, and featured categories.
+ 
+**- Certifications:** Manage certifications for courses and quizzes.
+ 
+**- Categories & Tags:** Organize content using categories and tags.
+ 
+**- Trainings & Reviews:** Create and manage courses, chapters, lessons, and user reviews.
+ 
+**- Notifications:** Send and manage notifications for users, roles, and companies.
+ 
+**- Files:** Handle file uploads and deletions, including base64 encoding.
+ 
+**- Roles & Permissions:** Manage roles and permissions for access control.
+ 
+**- Extra:** Miscellaneous endpoints for additional functionality.
+ 
+**- R2-Cloud-Storage (Files):** Manage file storage using Cloudflare R2, including uploads and storage usage.
+ 
+**- Quizzes:** Create and manage quizzes, including student interactions and results.
+ 
+**- Dashboards:** Access admin and user progress dashboards for analytics.
+ 
+**- Platform-Config:** Configure platform settings like SMTP and R2.
+ 
+**- Platform Theme & Logo:** Customize the platform's theme and logo.
+ 
+**- Instructor Dashboard & Stats:** Access instructor-specific analytics and sales data.
+ 
+**- LoyaltyPoints:** Manage loyalty programs and point conversions.
+
+**- PublicProfile - Instructor & Background Items:** Handle instructor public profiles and user background items.
+
+**- Error Handling:** Understand common error codes and how to handle them.
+
+**- Best Practices:** Tips for efficient and secure use of the API.
+
+**- Changelog:** Keep track of updates and changes to the API.
+
+Each section provides clear and concise information to help you integrate with our API effectively.
+
+
+
