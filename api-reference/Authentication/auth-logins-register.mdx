@@ -1,0 +1,132 @@
+---
+title: 'Auth - Logins, Register ..etc'
+description: 'The Authentication API provides secure endpoints for managing user access on the Learning Management System (LMS).'
+---
+
+**It supports:**
+
+- Register (Sign up) / Create A User As Admin (uses the register endpoint).
+
+- Login (with/without 2FA).
+
+- Authentication with CAPTCHA (Cloudflare Turnstile).
+
+- Recovery code-based 2FA fallback.
+
+- Multilingual login support (English, Arabic, French).
+
+- Lgout & Logout from all devices.
+
+All endpoints are prefixed with <Badge>/auth.</Badge>
+
+You can test these APIs interactively through Mintlify's OpenAPI block.
+
+<Info>
+ All endpoints require **Bearer Token** authentication via **laravel sanctum**.
+</Info>
+
+### Register (Sign Up)
+Creates a new user account.
+After successful registration, a verification email is automatically sent to the provided address.
+The user must verify their email before being able to log in.
+
+**POST** <Badge>/api/auth/register</Badge>
+
+**Headers :**
+| Name             | Value                          |
+| ---------------- | ------------------------------ |
+| Content-Type     | <Badge>application/json</Badge>|
+
+**Body**
+```
+{
+  "company_id": 1,
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "password": "SecurePass123!",
+  "password_confirmation": "SecurePass123!",
+  "image_id": 15
+}
+```
+| Field                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>company_id</Badge>              |  integer  | ✅ Yes    | Must exist in the <Badge>companies</Badge> table |
+|  <Badge>first_name</Badge>              |  string   | ✅ Yes    | Minimum 1, maximum 255 characters   |
+|  <Badge>last_name</Badge>               |  string   | ✅ Yes    | Minimum 1, maximum 255 characters   |
+|  <Badge>email</Badge>                   |  string   | ✅ Yes    | Must be a valid and unique email address   |
+|  <Badge>password</Badge>                |  string   | ✅ Yes    | Minimum 3, maximum 255 characters; must include a combination of upper/lowercase letters, numbers, and special characters   |
+|  <Badge>password_confirmation</Badge>   |  string   | ❌ No     | Must match the password field   |
+|  <Badge>image_id</Badge>                |  integer  | ❌ No     | Optional; must exist in the files table   |
+|  <Badge>phone_number</Badge>            |  string   | ❌ No     | Optional user phone number   |
+
+**Response :**
+
+<Tabs>
+  <Tab title="200">
+    ✅ 201 Created
+    ```
+  {
+  "error": false,
+  "message": "User created successfully, please verify your email before login.",
+  "user_id": 35
+   }
+    ```
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 Bad Request
+  ```
+    {
+    "message": "The email field is required."
+    }
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 Validation Error
+     ```
+  {
+  "message": "The email has already been taken."
+  }
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error
+  ```
+  {
+  "error": true,
+  "message": "Failed to create user. Please try again later."
+  }
+    ```
+  </Tab>
+</Tabs>
+
+### Notes (Register / Sign Up):
+- After successful registration, display a message prompting the user to check their inbox for the **verification email**.
+- The user **cannot log** in until their email is verified.
+- The password input should be validated client-side following the same rules:
+  - Minimum 3 characters
+  - Must include at least one uppercase, one lowercase, one digit, and one special character (recommended).
+- Handle and display backend validation messages from the API response.
+
+### Screenshot (Register/Sign up Page):
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+
+## Register - Admin Dashboard Usage
+## Login
+## Login with 2FA
+## Login with 2FA Recovery Code
+## Login with Turnstile & 2FA
+## Login with Turnstile (without 2FA)
+## Multilingual Login
+## Logout 
+## Logout from All Devices
+
+```json
+"security": [
+  {
+    "bearerAuth": []
+  }
+]
+```

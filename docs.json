@@ -1,70 +1,96 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "LMS",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
+ "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "LMS Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Introduction",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "introduction/overview",
+              "introduction/key-features",
+              "introduction/user-roles"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Getting Started",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "getting-started/access-and-authentication",
+              "getting-started/environment-setup",
+              "getting-started/first-steps"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "System Design",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "system-design/global-architecture",
+              "system-design/frontend-architecture",
+              "system-design/backend-architecture",
+              "system-design/database-design"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Modules",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication",
-              "api-reference/users"
+              "modules/authentication",
+              "modules/user-management",
+              "modules/course-management",
+              "modules/enrollment-and-progress",
+              "modules/assessments"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "API Reference",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/overview",
+              {
+                "group": "Authentication",
+                "pages": [
+                  "api-reference/authentication/auth-Logins-Register",
+                  "api-reference/authentication/email-verification",
+                  "api-reference/authentication/password-management",
+                  "api-reference/authentication/security"
+                ]
+              },
+              "api-reference/users",
+              "api-reference/courses",
+              "api-reference/enrollments"
+            ]
+          },
+          {
+            "group": "PMO & Workflow",
+            "pages": [
+              "pmo-and-workflow/project-methodology",
+              "pmo-and-workflow/jira-workflow",
+              "pmo-and-workflow/backlog-management",
+              "pmo-and-workflow/sprint-and-kanban"
+            ]
+          },
+          {
+            "group": "Development Guide",
+            "pages": [
+              "development-guide/frontend-guide",
+              "development-guide/backend-guide",
+              "development-guide/coding-standards",
+              "development-guide/branching-strategy"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/environments",
+              "deployment/build-and-release",
+              "deployment/monitoring-and-logs"
             ]
           }
         ]
