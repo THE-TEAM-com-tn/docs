@@ -1,0 +1,371 @@
+---
+title: 'Security - 2FA'
+description: 'Secure your LMS account with 2FA. These endpoints allow users to enable, confirm, disable, and manage recovery codes for two-factor authentication.'
+---
+
+<Info>
+ All endpoints require **Bearer Token** authentication via **Laravel Sanctum**.
+</Info>
+
+
+# Generate Secret Code - 2FA
+Generate a new 2FA secret for the authenticated user and return QR code information.
+2FA is disabled until confirmed with <Badge>/2fa/confirm</Badge>.
+
+**POST** <Badge>/2fa/generate</Badge>
+
+**Headers**
+| Name                                   | Value      |
+| --------------------------------------- | ---------  |
+|  Content-Type              | <Badge>application/json</Badge> |
+| Authorization    | <Badge>Bearer`<token>`</Badge>  |
+
+**Request Body :**
+```
+{}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK -  Success
+      ```
+{
+  "error": false,
+  "secret": "JBSWY3DPEHPK3PXP",
+  "otpauth_url": "otpauth://totp/Elearny:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Elearny",
+  "qr_image_url": "https://your-domain/storage/files/2fa-1-1712345678.png",
+  "qr_image_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+  "message": "QR code generated. Please scan with your authenticator."
+}
+    ```
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 — Already Enabled
+  ```
+{
+  "error": true,
+  "message": "2FA is already enabled for your account."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 — Unauthorized
+  ```
+{
+    "message": "An error occurred. Please try again later."
+}
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 — Validation Error
+  ```
+{
+  "error": true,
+  "message": {
+  "field": ["Validation message here"]
+}
+}
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 — Server Error
+
+ ```
+{
+  "error": true,
+  "message": "Internal Server Error."
+}
+ ```
+  </Tab>
+</Tabs>
+
+
+# Confirm 2FA
+**POST** <Badge>/2fa/confirm</Badge>
+
+
+- Confirm the 2FA setup by verifying a 6-digit TOTP code.
+
+- On success, 2FA is enabled and recovery codes are issued (Confirm Security Code to enable 2FA + download Recovery codes). 
+
+**Headers**
+| Name                                   | Value      |
+| --------------------------------------- | ---------  |
+|  Content-Type              | <Badge>application/json</Badge> |
+| Authorization    | <Badge>Bearer`<token>`</Badge>  |
+
+**Request Body :**
+```
+{
+  "otp": "123456"
+}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK -  Success
+      ```
+{
+  "error": false,
+  "message": "2FA has been enabled successfully.",
+  "recovery_codes": [
+    "3F7K9D2PQM",
+    "AB12CD34EF",
+    "ZXCVBNMASD",
+    "QWERTYUIOP",
+    "HJ7K9L2PQM",
+    "NM12CD34EF",
+    "POIUYTREWQ",
+    "LKJHGFDSAZ"
+  ]
+}
+    ```
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 Bad Request – No 2FA secret
+  ```
+{
+  "error": true,
+  "message": "No 2FA secret found. Please generate a secret first."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 Unauthorized – No authenticated user
+  ```
+{
+  "error": true,
+  "message": "Unauthorized: No authenticated user found."
+}
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 Unprocessable Entity – Invalid OTP
+  ```
+{
+  "error": true,
+  "message": {
+    "otp": ["The provided 2FA code is invalid."]
+  }
+}
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – Unexpected error
+
+ ```
+{
+  "error": true,
+  "message": "Internal Server Error."
+}
+ ```
+  </Tab>
+</Tabs>
+
+
+# Disable 2FA
+
+Disables 2FA after verifying the TOTP code. Clears secrets and recovery codes.
+
+**POST** <Badge>/2fa/disable</Badge>
+
+**Headers**
+| Name                                   | Value      |
+| --------------------------------------- | ---------  |
+|  Content-Type              | <Badge>application/json</Badge> |
+|Authorization|<Badge>Bearer `<token>`</Badge> |
+
+ 
+**Request Body :**
+```
+{
+  "otp": "123456"
+}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK -  Success
+      ```
+{
+  "error": false,
+  "message": "2FA has been disabled."
+}
+    ```
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 Bad Request – 2FA not enabled
+  ```
+{
+  "error": true,
+  "message": "2FA is not enabled for this user."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 — Unauthorized – No authenticated user
+  ```
+{
+  "error": true,
+  "message": "Unauthorized: No authenticated user found."
+}
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 — Unprocessable Entity – Invalid OTP
+  ```
+{
+  "error": true,
+  "message": {
+    "otp": ["The provided 2FA code is invalid. Please provide a valid code to disable 2FA."]
+  }
+}
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 — Internal Server Error – Unexpected error
+
+ ```
+{
+  "error": true,
+  "message": "Internal Server Error."
+}
+ ```
+  </Tab>
+</Tabs>
+
+
+# Regenerate Recovery Codes 
+Generates a new set of single-use recovery codes for the authenticated user. Only available if 2FA is enabled. 
+ 
+**Headers**
+| Name                                   | Value      |
+| --------------------------------------- | ---------  |
+|  Content-Type              | <Badge>application/json</Badge> |
+| Authorization    | <Badge>Bearer`<token>`</Badge>  |
+
+**Request Body :**
+```
+{}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK -  Success
+      ```
+{
+  "error": false,
+  "message": "Recovery codes regenerated.",
+  "recovery_codes": ["NEWCODE1", "NEWCODE2", "..."]
+}
+
+    ```
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 Bad Request – 2FA not enabled
+  ```
+{
+  "error": true,
+  "message": "You cannot regenerate recovery codes if 2FA is disabled."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 — Unauthorized – No authenticated user
+  ```
+{
+  "error": true,
+  "message": "Unauthorized: No authenticated user found."
+}
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 — Unprocessable Entity – Validation error
+  ```
+{
+  "error": true,
+  "message": {
+  "field": ["Validation message here"]
+}
+}
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 — Internal Server Error – Unexpected error
+
+ ```
+{
+  "error": true,
+  "message": "Internal Server Error."
+}
+ ```
+  </Tab>
+</Tabs> 
+ 
+
+# Screenshots – 2FA Page: Generate, Confirm, Disable, and Regenerate Recovery Codes 
+
+This section illustrates how users can manage Two-Factor Authenticatio (2FA) from their **Security Settings** page.
+
+🧩 **1. Generate 2FA**
+
+When the user enables 2FA for the first time:
+
+- A **QR code** and a **manual setup key** are displayed.
+
+- The user scans the QR code using an authentication app (e.g., Google Authenticator / or any other 2FA mobile/desktop app).
+
+- The system generates a set of recovery codes that can be used to access the account if the user loses access to their authenticator device.
+
+- These recovery codes should be saved securely.
+
+✅ **2. Confirm 2FA**
+
+Once the QR code is scanned:
+
+- The user enters the **6-digit code** generated by their authenticator app.
+
+- If verified successfully, 2FA becomes **active**, and the account is now protected by the additional security layer.
+
+🚫 **3. Disable 2FA**
+
+Users can disable Two-Factor Authentication at any time:
+
+- Clicking “Disable” will immediately turn off 2FA protection.
+
+- The QR code and previously issued recovery codes will no longer be valid.
+
+🔄 **4. Regenerate Recovery Codes**
+
+- If users lose their recovery codes or wish to reset them, they can select **“Regenerate Recovery Codes.”**
+
+- The system will generate a **new set of codes**, invalidating the previous ones.
+
+- Typically, this action is triggered once through the UI, as recovery codes are rarely regenerated unless necessary for security reasons.
+
+- The new codes must again be securely saved by the user.
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 

@@ -1,0 +1,201 @@
+---
+title: "Landing Page"
+description: "Landing page configuration endpoints: fetch, update (with images), sync trainings/exams positions, manage links, featured categories, and partner companies."
+---
+
+**Overview**
+
+The landing page is a **single record per company** (or a single global record depending on your deployment).  
+It includes sections like:
+- Header + header images
+- Featured categories
+- Trainings and exams showcased on the landing page
+- Partner companies
+- Banner + banner image
+- Footer data
+- Quick links and social links
+
+---
+
+**Common Headers**
+
+Most endpoints require authentication.
+
+| Name | Value |
+| --- | --- |
+| Content-Type | <Badge>application/json</Badge> |
+| Authorization | <Badge>Bearer &lt;token&gt;</Badge> |
+
+For endpoints that upload images, use:
+
+| Name | Value |
+| --- | --- |
+| Content-Type | <Badge>multipart/form-data</Badge> |
+
+---
+
+# Get Landing Page
+**GET** <Badge>/api/landing-page</Badge>
+
+Retrieves the landing page with all related content.
+
+**Included Relationships**
+
+The response includes:
+- `links`
+- `featuredCategories` + `feat_category_image`
+- `partnerCompanies` + `companyLogo`
+- `trainings` (with instructor + images)
+- `exams` (with instructor + images)
+- `headerImage`, `backgroundImage`, `bannerImage`
+
+Featured categories and partner companies are ordered by `pivot_position`.
+
+**Response**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK
+```json
+{
+  "id": 1,
+  "company_id": 10,
+  "company_name": "My Company",
+  "show_header_section": true,
+  "featured_categories": [],
+  "partner_companies": [],
+  "trainings": [],
+  "exams": [],
+  "headerImage": {
+    "id": 12,
+    "file_name": "1700000000_header.png",
+    "url": "https://example.com/storage/files/1700000000_header.png"
+  }
+}
+```
+</Tab> 
+</Tabs>
+
+# Update Landing Page (Create or Update)
+
+POST <Badge>/api/landing-page</Badge>
+
+Creates or updates the landing page for the authenticated user's company.
+
+**Authentication & Company Rules**
+
+- Returns 401 if unauthenticated
+
+- Returns 403 if user does not have `company_id`
+
+### Body (Validation Rules)
+**Section Toggles (Booleans)**
+| Field                                       | Type    | Required | Description                   |
+| ------------------------------------------- | ------- | -------- | ----------------------------- |
+| <Badge>show_header_section</Badge>          | boolean | ❌ No     | Show/hide header section      |
+| <Badge>show_category_section</Badge>        | boolean | ❌ No     | Show/hide featured categories |
+| <Badge>show_training_section</Badge>        | boolean | ❌ No     | Show/hide trainings section   |
+| <Badge>show_exams_section</Badge>           | boolean | ❌ No     | Show/hide exams section       |
+| <Badge>show_partner_company_section</Badge> | boolean | ❌ No     | Show/hide partner companies   |
+| <Badge>show_banner</Badge>                  | boolean | ❌ No     | Show/hide banner              |
+
+
+**Company Content**
+| Field                                       | Type   | Required | Description                      |
+| ------------------------------------------- | ------ | -------- | -------------------------------- |
+| <Badge>company_name</Badge>                 | string | ❌ No     | Landing page company name        |
+| <Badge>company_description</Badge>          | string | ❌ No     | Landing page company description |
+| <Badge>landing_page_primary_color</Badge>   | string | ❌ No     | Hex color without # (size 6)     |
+| <Badge>landing_page_secondary_color</Badge> | string | ❌ No     | Hex color without # (size 6)     |
+
+**Header Fields**
+| Field                                     | Type   | Required | Description        |
+| ----------------------------------------- | ------ | -------- | ------------------ |
+| <Badge>header_title</Badge>               | string | ❌ No     | Header title       |
+| <Badge>header_subtitle</Badge>            | string | ❌ No     | Header subtitle    |
+| <Badge>header_description</Badge>         | string | ❌ No     | Header description |
+| <Badge>header_registration_link</Badge>   | url    | ❌ No     | Registration link  |
+| <Badge>header_call_to_action_link</Badge> | url    | ❌ No     | CTA link           |
+
+**Banner Fields**
+| Field                                     | Type   | Required | Description     |
+| ----------------------------------------- | ------ | -------- | --------------- |
+| <Badge>banner_title</Badge>               | string | ❌ No     | Banner title    |
+| <Badge>banner_call_to_action_link</Badge> | url    | ❌ No     | Banner CTA link |
+
+**Footer Fields**
+| Field                               | Type   | Required | Description      |
+| ----------------------------------- | ------ | -------- | ---------------- |
+| <Badge>footer_address</Badge>       | string | ❌ No     | Company address  |
+| <Badge>footer_phone_number</Badge>  | string | ❌ No     | Phone number     |
+| <Badge>footer_mobile_number</Badge> | string | ❌ No     | Mobile number    |
+| <Badge>footer_contact_email</Badge> | email  | ❌ No     | Contact email    |
+| <Badge>footer_google_play</Badge>   | url    | ❌ No     | Google Play link |
+| <Badge>footer_app_store</Badge>     | url    | ❌ No     | App Store link   |
+| <Badge>footer_download_link</Badge> | url    | ❌ No     | Download link    |
+
+**Language**
+| Field                   | Type   | Required | Description                       |
+| ----------------------- | ------ | -------- | --------------------------------- |
+| <Badge>language</Badge> | string | ❌ No     | 2 letters (regex `^[a-zA-Z]{2}$`) |
+
+**Image Uploads (multipart/form-data)**
+| Field                                  | Type | Required | Description               |
+| -------------------------------------- | ---- | -------- | ------------------------- |
+| <Badge>header_image</Badge>            | file | ❌ No     | jpg/jpeg/png/svg, max 5MB |
+| <Badge>header_background_image</Badge> | file | ❌ No     | jpg/jpeg/png/svg, max 5MB |
+| <Badge>banner_image</Badge>            | file | ❌ No     | jpg/jpeg/png/svg, max 5MB |
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ 
+    "message": "Landing page updated successfully", 
+    "data": 
+    { 
+        "company_id": 10, 
+        "header_title": "Welcome", 
+        "banner_title": "New Courses", 
+        "header_image_id": 12 
+    } 
+} 
+``` 
+</Tab> 
+<Tab title="401"> 
+⚠️ 401 Unauthenticated 
+```json 
+{ "message": "Unauthenticated." } 
+``` 
+</Tab> 
+<Tab title="403"> 
+⚠️ 403 Forbidden 
+```json 
+{ "message": "No company_id on your user." } 
+``` 
+</Tab> 
+<Tab title="422"> 
+⚠️ 422 Validation Error 
+```json 
+{ 
+    "message": "Validation error", 
+    "errors": 
+    { 
+        "landing_page_primary_color": ["The landing page primary color must be 6 characters."] 
+    } 
+} 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "Error updating landing page: <error details>" } 
+``` 
+</Tab> 
+</Tabs>
+
+# Sync Trainings (Attach / Reorder)
+POST <Badge>/api/landing-page/trainings/sync</Badge>
+
+Selects and orders trainings displayed on the landing page.
+**Body (Validation Rules)**

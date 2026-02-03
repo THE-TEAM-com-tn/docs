@@ -1,0 +1,240 @@
+---
+title: 'Email Verification'
+description: 'Manage user email verification through these two endpoints. They ensure account authenticity and secure onboarding.'
+---
+
+# Verify Email
+**GET** <Badge>/auth/email/verify_email/`{user_id}`</Badge>
+
+Verifies a newly registered user’s email address using the verification link sent via email.
+This endpoint finalizes the email verification process, marking the user’s email as verified in the database and optionally redirecting to the frontend.
+
+**Overview**
+When a new user registers, they receive a verification email containing a link like:
+
+```
+https://api.the-team.tn/v1/auth/email/verify_email/{user_id}
+```
+Clicking this link calls this endpoint, confirming ownership of the provided email address.
+
+Once verified, the user can proceed to log in.
+If the email was already verified, the endpoint returns a message indicating that status.
+
+**Headers**
+| Key                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>Accept</Badge>              |  string  | ✅ Yes    | Should be <Badge>application/json</Badge> |
+|  <Badge>Authorization</Badge>              |  string   | ❌ No    | Not required (public endpoint).  |
+
+
+**Request Parameters**
+| Parameter                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>id</Badge>              |  integer  | ✅ Yes    | The unique ID of the user being verified. |
+
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK – Email Verified Successfully
+    
+    If the verification is successful, the endpoint marks the user’s email as verified and returns a success message (or redirects to your frontend confirmation page).
+    ```
+{
+  "message": "Email verified successfully."
+}
+    ```
+    The endpoint may also return an HTML response with a 5-second redirect:
+    ```
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+[Verification successful — redirecting to your dashboard...]
+    ```    
+    Redirect URL: $`{FRONTEND_URL}`
+
+    ⚠️ 200 OK – Email Already Verified
+
+    If the email was already verified earlier:
+```
+{
+  "message": "Email already verified."
+}
+    ```    
+  </Tab>
+  <Tab title="404">
+    ⚠️ 404 Not Found – User Not Found
+    
+If no user exists for the provided ID:
+  ```
+{
+  "message": "User not found."
+}
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – General Failure
+
+    If something unexpected occurs during verification:
+ ```
+{
+  "message": "Failed to verify email. Please try again later."
+}
+ ```
+  </Tab>
+</Tabs>
+
+
+**Notes**
+- This endpoint does **not require authentication**.
+
+- Once verified, the user can log in normally using <Badge>/auth/login</Badge>.
+
+- The verification page can be customized (<Badge>resources/views/verified.blade.php</Badge>) to include your LMS branding.
+
+- Redirects automatically after 5 seconds to the frontend defined in <Badge>FRONTEND_URL</Badge>.
+
+
+**Screenshots - Email Verification**
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+
+
+# Resend Verification Email
+**POST**<Badge>/auth/email/resend_verification_email</Badge>
+
+Resends a verification email to the specified user if their account has not yet been verified.
+This endpoint includes rate limiting to prevent abuse (default: 6 requests per minute).
+
+**Overview**
+
+This endpoint is intended for users who haven’t received their email verification link or whose link has expired. It verifies the email, ensures the account is unverified, and triggers Laravel’s built-in verification notification system.
+
+**Middleware**
+This route uses the following middleware:
+
+- <Badge>throttle:6,1</Badge> → limits requests to **6 per minute** per IP/user.
+
+- Optional: <Badge>api</Badge>, <Badge>guest</Badge> depending on your route group.
+
+**Headers**
+⚠️ **No authentication required** — this endpoint can be used before login.
+
+| Key                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>Content-Type</Badge>              |  string  | ✅ Yes    | Should be <Badge>application/json</Badge> |
+
+**Request Body**
+| Parameter                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>email</Badge>              |  string  | ✅ Yes    | The user’s email address to resend the verification link to. |
+
+
+**Example Request**
+```
+POST /auth/email/resend_verification_email
+Content-Type: application/json
+Authorization: Bearer <access_token>
+
+{
+  "email": "student1@fivermail.com"
+}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK – Verification Email Resent
+
+If the email exists and is not yet verified, a new verification link is sent.
+    ```
+{
+  "message": "Verification email has been resent."
+}
+    ```
+    The endpoint may also return an HTML response with a 5-second redirect:
+    ```
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+[Verification email has been resent successful — redirecting to your dashboard...]
+    ```    
+    Redirect URL: $`{FRONTEND_URL}`
+
+    ⚠️ 200 OK – Email Already Verified
+
+    If the user has already verified their email:
+```
+{
+  "message": "Email already verified."
+}
+    ```    
+  </Tab>
+  <Tab title="400">
+    ⚠️ 400 Bad Request – Already Verified
+    
+If no user exists for the provided ID:
+  ```
+{
+  "message": "Email is already verified."
+}
+    ```
+  </Tab>
+  <Tab title="404">
+    ⚠️ 404 Not Found – User Not Found
+
+    If the provided email does not match any user in the system:
+ ```
+{
+  "message": "User not found."
+}
+ ```
+  </Tab>
+  <Tab title="429">
+    ⛔ 429 Too Many Requests – Throttle Triggered
+
+    Returned if the user exceeds the allowed request limit (default: 6 per minute).
+ ```
+{
+  "message": "Too many attempts. Please try again later."
+}
+ ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – Failure
+
+    If something unexpected occurs during verification:
+ ```
+{
+  "message": "Failed to resend verification email. Please try again later."
+}
+ ```
+  </Tab>
+</Tabs>
+
+**Screenshot - Resend Verification E-Mail**
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+
+**Notes**
+
+- Uses Laravel’s <Badge>sendEmailVerificationNotification()</Badge> under the hood.
+
+- Logs all exceptions with:
+```
+Resend verification email failed: <error_message>
+```
+- Translations are handled via <Badge>resources/lang/*/messages.php</Badge> (e.g., <Badge>verification_email_resent</Badge>, <Badge>email_already_verified</Badge>, etc.).
+
+- Rate limiting can be tuned as described below.

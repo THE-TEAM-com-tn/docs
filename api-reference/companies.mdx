@@ -1,0 +1,326 @@
+---
+title: "Companies"
+description: "Company management endpoints: list, create, view, update (with image upload), archive, restore, and delete."
+---
+
+**Common Notes**
+- Most endpoints require authentication.
+- Access is controlled by policies (`viewAny`, `view`, `create`, `update`, `archive`, `restore`, `delete`).
+
+---
+
+# Get All Companies
+**GET** <Badge>/api/companies</Badge>
+
+Returns a paginated list of companies, with optional search by label.
+
+**Authorization**
+- Policy: `viewAny` on `Company`
+
+**Query Params**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge>per_page</Badge> | integer | ❌ No | Items per page. Default: `10` |
+| <Badge>page</Badge> | integer | ❌ No | Page number. Default: `1` |
+| <Badge>search</Badge> | string | ❌ No | Search by `label` (LIKE query) |
+
+**Response Shape**
+The API returns:
+- `data`: array of companies (simplified fields)
+- `pagination`: only `per_page` and `page`
+
+Each company may include `company_image` if available:
+- `id`
+- `file_name`
+- `url`
+
+**Response**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "company_id": null,
+      "label": "Acme Academy",
+      "description": "Training company",
+      "currency": "TND",
+      "company_image_id": 12,
+      "created_at": "2026-01-01T10:00:00.000000Z",
+      "updated_at": "2026-01-05T10:00:00.000000Z",
+      "archived_at": null,
+      "deleted_at": null,
+      "company_image": {
+        "id": 12,
+        "file_name": "1700000000_logo.png",
+        "url": "files/1700000000_logo.png"
+      }
+    }
+  ],
+  "pagination": {
+    "per_page": 10,
+    "page": 1
+  }
+}
+```
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Create Company
+POST <Badge>/api/companies</Badge>
+
+Creates a new company. Optionally accepts an uploaded image (`company_image`) and stores it under `public/files`.
+
+**Authorization**
+- Policy: `create` on `Company`
+
+**Content-Type**
+This endpoint supports file upload, so use:
+
+| Name         | Value                              |
+| ------------ | ---------------------------------- |
+| Content-Type | <Badge>multipart/form-data</Badge> |
+
+
+**Body (Validation Rules)**
+| Field                        | Type    | Required | Description                                |
+| ---------------------------- | ------- | -------- | ------------------------------------------ |
+| <Badge>company_id</Badge>    | integer | ❌ No     | Must exist in `companies` table.           |
+| <Badge>label</Badge>         | string  | ✅ Yes    | min 1, max 255                             |
+| <Badge>description</Badge>   | string  | ✅ Yes    | min 1                                      |
+| <Badge>currency</Badge>      | string  | ✅ Yes    | min 1, max 255                             |
+| <Badge>company_image</Badge> | file    | ❌ No     | Image file (jpeg/png/jpg/gif/svg), max 5MB |
+
+**Example (multipart)**
+- label: `Acme Academy`
+
+- description: `Training company`
+
+- currency: `TND`
+
+- company_image: (file upload)
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "message": "Company created successfully" } 
+``` 
+</Tab> 
+<Tab title="422"> 
+⚠️ 422 Validation Error 
+```json 
+{ 
+    "message": "The label field is required.", 
+    "errors": 
+    { 
+        "label": ["The label field is required."] 
+    } 
+} 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+**Notes**
+If `company_image` is uploaded:
+
+    - A `File` record is created
+
+    - The file is stored under `public/files`
+
+    - The company is updated with `company_image_id`
+
+# Get Company By ID
+GET <Badge>/api/companies/`{id}`</Badge>
+
+Returns a single company (simplified fields) with optional `company_image`.
+
+**Authorization**
+- Policy: `view` on `Company`
+
+**Path Params**
+| Param             | Type    | Required | Description |
+| ----------------- | ------- | -------- | ----------- |
+| <Badge>id</Badge> | integer | ✅ Yes    | Company ID  |
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ 
+    "id": 1, 
+    "company_id": null, 
+    "label": "Acme Academy", 
+    "description": "Training company", 
+    "currency": "TND", 
+    "company_image_id": 12, 
+    "created_at": "2026-01-01T10:00:00.000000Z", 
+    "updated_at": "2026-01-05T10:00:00.000000Z", 
+    "archived_at": null, 
+    "deleted_at": null, 
+    "company_image": 
+    { 
+        "id": 12, 
+        "file_name": "1700000000_logo.png", 
+        "url": "files/1700000000_logo.png" 
+    } 
+} 
+``` 
+</Tab> 
+<Tab title="404"> 
+❌ 404 Not Found
+```json 
+{ "message": "No query results for model" } 
+``` 
+</Tab> 
+</Tabs>
+
+# Update Company
+POST <Badge>/api/companies/{id}</Badge>
+
+Updates company fields and optionally replaces `company_image`.
+
+**Authorization**
+- Policy: `update` on `Company`
+
+**Content-Type**
+| Name         | Value                              |
+| ------------ | ---------------------------------- |
+| Content-Type | <Badge>multipart/form-data</Badge> |
+
+
+**Body (Validation Rules)**
+| Field                        | Type    | Required | Description                                |
+| ---------------------------- | ------- | -------- | ------------------------------------------ |
+| <Badge>company_id</Badge>    | integer | ❌ No     | Must exist in `companies` table            |
+| <Badge>label</Badge>         | string  | ❌ No     | min 1, max 255                             |
+| <Badge>description</Badge>   | string  | ❌ No     | min 1                                      |
+| <Badge>currency</Badge>      | string  | ❌ No     | min 1, max 255                             |
+| <Badge>company_image</Badge> | file    | ❌ No     | Image file (jpeg/png/jpg/gif/svg), max 5MB |
+
+**Image Replacement Behavior**
+f a new `company_image` is uploaded:
+
+1. Deletes the old physical file from `public/files/` (if exists)
+
+2. Deletes the old `File` record
+
+3. Creates a new `File` record
+
+4. Stores the new file
+
+5. Updates `company_image_id`
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "message": "Company updated successfully !!!!" } 
+``` 
+</Tab>
+<Tab title="422"> 
+⚠️ 422 Validation Error 
+```json 
+{ 
+    "message": "The currency must be a string.", 
+    "errors": { "currency": ["The currency must be a string."] } 
+} 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "Failed to update company: <error details>" } 
+``` 
+</Tab> 
+</Tabs>
+
+# Archive Company
+POST <Badge>/api/companies/`{id}`/archive</Badge>
+
+Archives a company.
+
+**Authorization**
+- Policy: `archive` on `Company`
+
+****
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "message": "Company archived successfully." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Unarchive (Restore) Company
+POST <Badge>/api/companies/`{id}`/unarchive</Badge>
+
+Restores an archived company.
+
+**Authorization**
+- Policy: `restore` on `Company`
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "message": "Company restored successfully." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Delete Company
+DELETE <Badge>/api/companies/`{id}`</Badge>
+
+Soft-deletes a company (uses Eloquent `delete()`).
+
+**Authorization**
+- Policy: `delete` on `Company`
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "message": "Company force deleted successfully." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>

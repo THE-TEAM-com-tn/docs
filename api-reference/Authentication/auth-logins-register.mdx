@@ -25,7 +25,7 @@ You can test these APIs interactively through Mintlify's OpenAPI block.
  All endpoints require **Bearer Token** authentication via **laravel sanctum**.
 </Info>
 
-### Register (Sign Up)
+# Register (Sign Up)
 Creates a new user account.
 After successful registration, a verification email is automatically sent to the provided address.
 The user must verify their email before being able to log in.
@@ -83,11 +83,11 @@ The user must verify their email before being able to log in.
   </Tab>
   <Tab title="422">
     ⚠️ 422 Validation Error
-     ```
-  {
+ ```
+{
   "message": "The email has already been taken."
-  }
-    ```
+}
+ ```
   </Tab>
   <Tab title="500">
     ❌ 500 Internal Server Error
@@ -100,7 +100,7 @@ The user must verify their email before being able to log in.
   </Tab>
 </Tabs>
 
-### Notes (Register / Sign Up):
+**Notes (Register / Sign Up):**
 - After successful registration, display a message prompting the user to check their inbox for the **verification email**.
 - The user **cannot log** in until their email is verified.
 - The password input should be validated client-side following the same rules:
@@ -108,25 +108,485 @@ The user must verify their email before being able to log in.
   - Must include at least one uppercase, one lowercase, one digit, and one special character (recommended).
 - Handle and display backend validation messages from the API response.
 
-### Screenshot (Register/Sign up Page):
+**Screenshot (Register/Sign up Page):**
 <Frame>
   <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
 </Frame>
 
-## Register - Admin Dashboard Usage
-## Login
-## Login with 2FA
-## Login with 2FA Recovery Code
-## Login with Turnstile & 2FA
-## Login with Turnstile (without 2FA)
-## Multilingual Login
-## Logout 
-## Logout from All Devices
+# Register - Admin Dashboard Usage 
+In the **Admin Dashboard → Users → “Create User”**, this same **Register API** is used when an administrator manually creates a new user.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+When filling the “Add New Customer” form:
+
+- The **profile image** is uploaded via the **Image Upload API (POST <Badge>/api/files/upload</Badge>)**.
+
+- Once uploaded, the returned <Badge>image_id</Badge> is included in the register request payload.
+
+➡️ Both endpoints are triggered together, meaning:
+
+1. The image is uploaded first to get its <Badge>image_id</Badge>.
+
+2. The <Badge>register</Badge> endpoint is called with that <Badge>image_id</Badge> and the user’s form details.
+
+This ensures that both operations (user creation and profile image upload) happen **simultaneously and consistently**. 
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>   
+    
+
+# Login 
+Authenticate a user using their email and password. Upon successful authentication, the server returns an access token and information about two-factor authentication status. This token should be used in subsequent authenticated requests. 
+
+**POST** <Badge>/auth/login</Badge> 
+**Headers :**
+| Name             | Value                          |
+| ---------------- | ------------------------------ |
+| Content-Type     | <Badge>application/json</Badge>|
+| Authorization    | <Badge>Bearer`<token>`</Badge>  |
+
+**Body**
 ```
+{
+  "email": "student@fivermail.com",
+  "password": "Azerty123%"
+}
+```
+| Field                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>email</Badge>              |  string  | ✅ Yes    | The user's email address. |
+|  <Badge>password</Badge>              |  string   | ✅ Yes    | The user's password.  |
+
+**Response :**
+
+<Tabs>
+  <Tab title="200">
+    ✅ 
+    ```
+  {
+  "error": false,
+    "message": "Connected successfully.",
+    "token": "3|4tCxzjK5uKnWiKsygUmggIXPFrXmgwBySeoftpfn5d68b884",
+    "two_factor_enabled": false
+   }
+    ```
+    Description : 
+| Field            | Type                          | Description    |
+| ---------------- | ------------------------------ | --------------- |
+| <Badge>error</Badge>     | boolean|  Indicates if an error occurred (false on success). |
+| <Badge>message</Badge>   | string  | A message indicating login status. |
+|  <Badge>token</Badge> | string | Access token for authenticated API requests.|
+|  <Badge>two_factor_enabled</Badge> | boolean |  Indicates if two-factor authentication is enabled. |
+
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 Unauthorized – Invalid credentials
+  ```
+    {
+    "error": true,
+    "message": "Invalid credentials."
+    }
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – General failure
+  ```
+  {
+  "message": "An error occurred. Please try again later."
+  }
+    ```
+  </Tab>
+</Tabs>
+   
+<Tooltip headline="Hoppscotch" tip="Open source API development ecosystem" cta="Click here" href="https://hoppscotch.io">Hoppscotch •</Tooltip> Open source API development ecosystem
+
+**Screenshot (login page):**
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+
+
+
+# Login with 2FA
+
+**POST** <Badge>/auth/login</Badge> 
+Standard login using 2FA without CAPTCHA. Applicable to both admin and student roles where 2FA is enabled.
+
+**Headers :**
+| Name             | Value                          |
+| ---------------- | ------------------------------ |
+| Content-Type     | <Badge>application/json</Badge>|
+| Authorization    | <Badge>Bearer`<`token`>`</Badge>  |
+
+**Body**
+```
+{
+  "email": "student@fivermail.com",
+  "password": "Azerty123%"
+  "2fa_code": "905327"
+}
+```
+| Field                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>email</Badge>              |  string  | ✅ Yes    | The user's email address. |
+|  <Badge>password</Badge>              |  string   | ✅ Yes    | The user's password.  |
+
+**Response :**
+
+<Tabs>
+  <Tab title="200">
+    ✅ Success Response (2FA Enabled)
+    ```
+  {
+    "error": false,
+    "message": "Connected successfully.",
+    "token": "5|18rcywylZyWCS5VfUaum5tdbM6m0mPywtBg6ppOO468af536",
+    "two_factor_enabled": true
+   }
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 Unauthorized – Invalid credentials :
+  ```
+    {
+    "error": true,
+    "message": "Invalid credentials."
+    }
+    ```
+    ⚠️ 401 Unauthorized - Invalid 2FA Code : 
+  ```
+    {
+    "error": true,
+    "message": "Invalid two-factor authentication code."
+    }
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – General failure
+  ```
+  {
+  "message": "An error occurred. Please try again later."
+  }
+    ```
+  </Tab>
+</Tabs>
+
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame> 
+
+
+
+# Login with 2FA Recovery Code
+**POST** <Badge>/auth/login</Badge> 
+
+Used when logging in with a 2FA recovery code instead of a standard 2FA time-based code.
+
+Recovery codes can be submitted in place of the time-based <Badge>2fa_code</Badge> during login.
+
+**Request Body**
+```
+{
+  "email": "admin@fivermail.com",
+  "password": "Azerty123%",
+  "2fa_code": "NZPB8VJ2V0"
+}
+```
+✅ <Badge>2fa_code</Badge> may represent either a time-based 2FA code or a one-time recovery code.
+
+<Danger>Each recovery code can typically be used only once. After it is used, it becomes invalid and should be discarded.</Danger>
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+
+
+# Login with Turnstile & 2FA
+
+**POST** <Badge>/auth/login</Badge> 
+Authenticates an admin user with email, password, CAPTCHA (Turnstile token), and two-factor authentication (2FA) code. This adds an extra layer of protection against automated logins and unauthorized access. 
+<Danger>Note: Turnstile can be used independently of 2FA; however, in this example, we demonstrate a login flow that incorporates both Turnstile and two-factor authentication (2FA) for enhanced security.We are using the free version of Cloudflare Turnstile, as our domain is already hosted on Cloudflare, which provides seamless integration without additional cost.</Danger>
+
+<video
+  autoPlay
+  muted
+  loop
+  playsInline
+  className="aspect-video rounded-xl"
+  src="/videos/demo.mp4"
+></video>
+
+**Request Headers**
+
+Same as the typical login.
+
+**Request Body :**
+```
+{
+  "email": "admin@fivermail.com",
+  "password": "Azerty123%",
+  "2fa_code": "790099",
+  "turnstileToken": "<turnstile_token_here>"
+}
+```
+| Field                                   | Type      | Required  | Description
+| --------------------------------------- | --------- | --------- | ------------------------------------  |
+|  <Badge>email</Badge>              |  string  | ✅ Yes    | Admin's email address. |
+|  <Badge>password</Badge>              |  string   | ✅ Yes    | Admin's password.  |
+| <Badge>2fa_code</Badge>  | string | ✅ Yes | Two-factor authentication code. |
+| <Badge>turnstileToken</Badge> | string | ✅ Yes | CAPTCHA token from Cloudflare Turnstile. |
+
+**Testing turnstile on chrome browser :**
+<Frame>
+  <img src="/path/image.jpg" alt="Screenshot (Register/Sign up Page)" />
+</Frame>
+
+**Request Body :**
+```
+{
+    "email": "admin@fivermail.com",
+    "password": "Azerty123%",
+    "2fa_code": "790099",
+    "turnstileToken": "0.McZU5khXxFmDQBgugcmag8sVAdMGZS2NlTNDdHL14x_2Tku7NwMxZE0bTITlnZhj6d0Rmm4rQOs-zbzTtKQeYENc5VA42iNvHyoe0wsiw8RuOZopJHE9ConxI3UqftJvMsedn9VZFH_nkYkMjnrUvfrsL7_qTEHaXGCYmmiEqkheLu6yzAKL1XP0KMN1dtC7dHI1cq6HOS8SKUaIyMjZA9ODXF8Vjma4uGjCAZmywl_zWqV7Sxq2TnRl89rWW05eYL9BcKcLFLob4kQe0Q4fwKxRlLymdRp6Ua5EkTDvkbkFNE5R6Y5wm22Cd9S0Y8wjaKw5wEZM02rDZaAgMb8rRb-tEBE4ZNLSjo_gDB2BZPiEhOoATlzfHonYGYpQzmi4XS2QvNJkSfBjcw1jCghVizvaVhkdTt7Fu2vxk8ztsadLvG3CtlIGNzSjsxnVTEeBUAw5ZTXCxrevKf1cGkZGkCn-f8zKVHT8uKafZy557DrIdm7lYnJ1sQBzoB2KkeI3HoWB3b9kvt6_jKd8f51ShZ_BjhZixCRmtLbRCjaCHOdGqcH5qBa8rkEtUUswsPW6Z7nb5uRsE0ftXnxXMXep4HL1MKT2RwcwGD9sA1y1Y2xayhgSqNAthXRfOX-xKdzTthsl0cRr7qardCcbAhsrCxm833Mx8lDAvypZGV4Si0puxKEisNW8As9u_ems4YRNk8fzHQxeVbsV40yNrX6iYwM7aVK_weBXywkZCzOUQsIP9YlbrcXjzrJ8PTQ60vMTscIDARGENXRjWA2uWuMmCIbOfPJBcm0stWbpVnoS6rCVAkYqiJ74uhRZm8c4k_N3t3qJJZABF6Yuu4Df1pMYPSmfz6ldd-cozIfLl-9mbXs.Qvx9xX8YI05rOvbiC54luQ.05065e7d3d5bb0dbe07459dc60e9def03da26d0522303ffb8cc11fc761d0d49e"
+}
+```
+**Response Body :**
+
+<Tabs>
+  <Tab title="200">
+    ✅ Success Response (2FA Enabled)
+    ```
+    {
+    "error": false,
+    "message": "Connected successfully.",
+    "token": "5|18rcywylZyWCS5VfUaum5tdbM6m0mPywtBg6ppOO468af536",
+    "two_factor_enabled": true
+    }
+    ```
+  </Tab>
+  <Tab title="401">
+    ⚠️ 401 Unauthorized – Invalid credentials :
+  ```
+    {
+    "error": true,
+    "message": "Invalid credentials."
+    }
+    ```
+    ⚠️ 401 Unauthorized - Invalid 2FA Code : 
+  ```
+    {
+    "error": true,
+    "message": "Invalid two-factor authentication code."
+    }
+    ```
+  </Tab>
+  <Tab title="422">
+    ⚠️ 422 Unprocessable Entity - Turnstile verification failed : 
+    ```
+    {
+    "error": true,
+    "message": "Captcha verification failed. Please try again or reload page."
+    }
+    ```
+  </Tab>
+  <Tab title="500">
+    ❌ 500 Internal Server Error – General failure
+  ```
+  {
+  "message": "An error occurred. Please try again later."
+  }
+    ```
+    ❌ 500 Internal Server Error - Turnstile secret key missing :
+  ```
+  {
+  "error": true,
+  "message": "Turnstile secret key not configured on server."
+  }
+    ```
+  </Tab>
+</Tabs>
+
+
+# Login with Turnstile (without 2FA)
+This flow demonstrates login using CloudFlare Turnstile CAPTCHA only, without enabling two-factor authentication. It helps protect admin access from bots or automated attacks without requiring 2FA.
+
+<Check>This is useful for environments where CAPTCHA security is sufficient and 2FA is not mandatory.</Check>
+**Request Body:**
+```
+{
+  "email": "admin@fivermail.com",
+  "password": "Azerty123%",
+  "turnstileToken": "<turnstile_token_here>"
+}
+```
+
+**Response:**
+<Tabs>
+  <Tab title="200 - OK">
+    ✅ 
+    ```
+    {
+    "error": false,
+    "message": "Connected successfully.",
+    "token": "<access_token>",
+    "two_factor_enabled": false
+    }
+    ```
+  </Tab>
+</Tabs>  
+
+
+# Multilingual Login
+**POST** <Badge>/auth/login</Badge> 
+
+Authenticates a student and supports localization through the <Badge>Accept-Language</Badge> header. The platform supports Arabic (<Badge>ar</Badge>), English (<Badge>en</Badge>), and French (<Badge>fr</Badge>).
+
+**Request Headers :**
+
+| Header                                   | Type      | Description
+| --------------------------|  --------- | ------------------------------------  |
+|  <Badge>Accept</Badge>              |  string   | Should be set to <Badge>application/json</Badge>. |
+|  <Badge>Accept-Language</Badge>              |  string   | Language preference: <Badge>ar</Badge>, <Badge>en</Badge>, or <Badge>fr</Badge>  |
+
+**Request Body :**
+```
+{
+  "email": "student1@fivermail.com",
+  "password": "Azerty12%"
+}
+```
+<Tabs>
+  <Tab title="200">
+    FR :
+  ```
+  {
+    "error": false,
+    "message": "Connecté avec succès.",
+    "token": "5|DFiywQxwJwTixeC32J6qQIPNhEOCIjo7CgRFsrk1e9f96f0c",
+    "two_factor_enabled": false
+}
+    ```
+    AR :  
+  ```
+{
+    "error": false,
+    "message": "تم الاتصال بنجاح.",
+    "token": "6|kHRlGd0CzLfvNeGPCjD6oIg6PizofZWAV2ClaR9S17eb387c",
+    "two_factor_enabled": false
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    FR :
+  ```
+{
+    "error": true,
+    "message": "Identifiants invalides."
+}
+    ```
+    AR :
+  ```
+{
+    "error": true,
+    "message": "بيانات الاعتماد غير صالحة."
+}
+    ```
+  </Tab>
+</Tabs>
+
+# Logout
+Logs out the authenticated user by revoking their current access token.
+
+**POST** <Badge>/logout</Badge> 
+**Headers :**
+| Name             | Value                          |
+| ---------------- | ------------------------------ |
+| Content-Type     | <Badge>application/json</Badge>|
+| Authorization    | <Badge>Bearer`<`token`>`</Badge>  |
+
+**Body :**
+``` 
+{}
+```
+**Response :**
+<Tabs>
+  <Tab title="200">
+   200 - OK 
+  ```
+{
+  "message": "Successfully logged out."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    401 Unauthorized – Invalid credentials
+  ```
+{
+  "message": "Unauthenticated."
+}
+    ```
+  </Tab>
+</Tabs>
+
+**Notes**
+
+- This endpoint revokes only the current session's token.
+
+
+# Logout from All Devices
+
+Logs out the specified user from all devices by revoking all their personal access tokens.
+
+<Danger>Not implemented in the current UI version. This feature is planned for future versions.</Danger>
+
+**POST** <Badge>/logout-all-devices/`{`userId`}`</Badge> 
+**Headers :**
+| Name             | Value                          |
+| ---------------- | ------------------------------ |
+| Content-Type     | <Badge>application/json</Badge>|
+| Authorization    | <Badge>Bearer`<`token`>`</Badge>  |
+
+**Authorization**
+
+The authenticated user must have permission to update the specified user (checked via policy).
+
+**Body :**
+``` 
+{}
+```
+
+**Response :**
+<Tabs>
+  <Tab title="200">
+   200 - OK 
+  ```
+{
+   "message": "Logged out from all devices."
+}
+    ```
+  </Tab>
+  <Tab title="401">
+    401 Unauthorized: If no valid token is provided.
+  ```
+{
+  "message": "Unauthenticated."
+}
+    ```
+  </Tab>
+
+  <Tab title="403">
+    403 Forbidden: If the authenticated user lacks permission to update the specified user.
+  ```
+{
+  "message": "Unauthenticated."
+}
+    ```
+  </Tab>
+
+  <Tab title="404">
+   404 Not Found: If the specified user does not exist.
+  ```
+{
+  "message": "User not found."
+}
+    ```
+  </Tab>
+</Tabs>

@@ -1,0 +1,591 @@
+---
+title: "Users"
+description: "User management and user-related endpoints (listing, details, update, archive, restore, delete, instructor/student resources, cart/orders, and invoices)."
+---
+
+**Common Headers**
+
+Most endpoints require authentication.
+
+| Name | Value |
+| --- | --- |
+| Content-Type | <Badge>application/json</Badge> |
+| Authorization | <Badge>Bearer &lt;token&gt;</Badge> |
+
+---
+
+# Get All Users (Updated)
+**GET** <Badge>/api/users</Badge>
+
+Returns a paginated list of users filtered by company. Supports search, pagination, relationship inclusion, and archived/soft-deleted filtering.
+
+**Authorization**
+- Policy: `viewAny` on `User` (`$this->authorize('viewAny', User::class)`)
+
+**Query Params (Validation Rules)**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge>company_id</Badge> | integer | ✅ Yes | Must exist in `companies` table. |
+| <Badge>role_id</Badge> | integer | ❌ No | Filter users by role. |
+| <Badge>only_archived</Badge> | boolean | ❌ No | If true, returns only archived users. |
+| <Badge>only_deleted</Badge> | boolean | ❌ No | If true, returns only soft-deleted users (`deleted_at`). |
+| <Badge>search</Badge> | string | ❌ No | Search by `first_name`, `last_name`, or `email`. |
+| <Badge>page</Badge> | integer | ❌ No | Pagination page (min 1). Default: 1 |
+| <Badge>per_page</Badge> | integer | ❌ No | Items per page (1–100). Default: 20 |
+| <Badge>withCompany</Badge> | boolean | ❌ No | If true, includes the `company` relationship. Default: false |
+
+**Notes**
+- Super Admin role is excluded: `role_id != SUPER_ADMIN`.
+- Relationships included by default: `role.permissions`, `image`, `lessons`, `trainings_as_instructor`.
+- If `withCompany=true`, also loads `company`.
+
+**Response**
+<Tabs>
+  <Tab title="200">
+    ✅ 200 OK (Paginated response)
+```
+{
+  "current_page": 1,
+  "data": [
+    {
+      "id": 12,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@example.com",
+      "role_id": 2
+    }
+  ],
+  "per_page": 20,
+  "total": 57
+}
+```
+</Tab>
+ <Tab title="422"> 
+ ⚠️ 422 Unprocessable Entity (Validation error) 
+ ``` 
+ { 
+ "message": "The company id field is required.", 
+ "errors": { "company_id": ["The company id field is required."] } 
+ } 
+ ``` 
+ </Tab> 
+ <Tab title="500"> 
+ ❌ 500 Internal Server Error
+  ```
+   { "message": "An unexpected error occurred." } 
+   ``` 
+</Tab> 
+</Tabs>
+
+# Get User
+
+GET <Badge>/api/users/{id}</Badge>
+
+Returns full user details with relationships, with additional privacy filtering based on hide_public_profile.
+
+**Authorization**
+
+- Policy: view on the user ($this->authorize('view', $user))
+
+**Path Params**
+| Param             | Type    | Required | Description |
+| ----------------- | ------- | -------- | ----------- |
+| <Badge>id</Badge> | integer | ✅ Yes    | User ID     |
+
+**Privacy Behavior**
+If <Badge>hide_public_profile = true</Badge>, the API removes these fields from the response:
+
+- <Badge>public_profile_skills</Badge>
+
+- <Badge>public_profile_linkedin_url</Badge>
+
+- <Badge>public_profile_website</Badge>
+
+- <Badge>public_profile_description</Badge>
+
+- <Badge>public_profile_about_me</Badge>
+
+- <Badge>public_profile_phone_number</Badge>
+
+- <Badge>public_profile_location</Badge>
+
+- <Badge>public_profile_email</Badge>
+
+- <Badge>public_profile_verification</Badge>
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ 
+"id": 35,
+"first_name": "Student",
+"last_name": "Example",
+"email": "student@example.com",
+"hide_public_profile": true 
+} 
+```
+ </Tab> 
+ <Tab title="404"> 
+ ❌ 404 Not Found 
+ ```
+  { "message": "No query results for model" } 
+  ```
+</Tab> 
+</Tabs>
+
+# Update User
+POST <Badge>/api/users/`{id}`/update</Badge>
+
+Updates user profile data and (optionally) password. Also controls instructor public-profile fields and blocks/unblocks a user.
+
+**Authorization**
+- Policy: update on the user ($this->authorize('update', $user))
+
+**Body (Validation Rules)**
+| Field                       | Type    | Required | Description                                           |
+| --------------------------- | ------- | -------- | ----------------------------------------------------- |
+| <Badge>role_id</Badge>      | integer | ✅ Yes    | Must exist in `roles`.                                |
+| <Badge>first_name</Badge>   | string  | ✅ Yes    | min 1, max 255                                        |
+| <Badge>last_name</Badge>    | string  | ✅ Yes    | min 1, max 255                                        |
+| <Badge>phone_number</Badge> | string  | ❌ No     | Nullable                                              |
+| <Badge>image_id</Badge>     | integer | ❌ No     | Must exist in `files`.                                |
+| <Badge>birthday</Badge>     | date    | ❌ No     | Must be before today                                  |
+| <Badge>bio</Badge>          | string  | ❌ No     | Nullable                                              |
+| <Badge>is_blocked</Badge>   | boolean | ❌ No     | If true sets `blocked_at`, false clears it            |
+| <Badge>password</Badge>     | string  | ❌ No     | min 6, `confirmed` (requires `password_confirmation`) |
+
+**Instructor Public Profile Fields (Accepted)**
+Only applied when <Badge>role_id</Badge> is INSTRUCTOR:
+
+- <Badge>public_profile_skills</Badge>
+
+- <Badge>public_profile_linkedin_url</Badge>
+
+- <Badge>public_profile_website</Badge>
+
+- <Badge>public_profile_description</Badge>
+
+- <Badge>public_profile_about_me</Badge>
+
+- <Badge>public_profile_phone_number</Badge>
+
+- <Badge>public_profile_location</Badge>
+
+- <Badge>public_profile_email</Badge> (must be email)
+
+- <Badge>public_profile_verification</Badge> (only Admin/Super Admin can set)
+
+- <Badge>hide_public_profile</Badge>
+
+**Important Business Rule**
+If user is an instructor with trainings attached, role change is blocked:
+
+- Returns 409 Conflict if attempting to change role.
+
+**Response**
+<Tabs> 
+<Tab title="200">
+✅ 200 OK 
+``` 
+{ "message": "User updated successfully." } 
+``` 
+</Tab> 
+<Tab title="401"> 
+⚠️ 401 Unauthorized
+``` 
+ { "message": "Unauthenticated" } 
+``` 
+</Tab> 
+<Tab title="409"> 
+⚠️ 409 Conflict 
+```
+{ "message": "This instructor already has trainings attached to them, you cannot change their role." } 
+``` 
+</Tab>
+<Tab title="422"> 
+⚠️ 422 Validation Error 
+``` 
+{ 
+  "message": "The first name field is required.", 
+  "errors": { "first_name": ["The first name field is required."] } 
+} 
+``` 
+</Tab>
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+``` 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab>
+</Tabs>
+
+# Archive User
+
+POST <Badge>/api/users/`{id}`/archive</Badge>
+
+Archives a user.
+
+**Authorization**
+- Policy: archive
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ "message": "User archived successfully." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab>
+</Tabs>
+
+# Unarchive (Restore) User
+POST <Badge>/api/users/{id}/unarchive</Badge>
+
+Restores an archived user.
+
+**Authorization**
+- Policy: restore
+
+**Response**
+<Tabs>
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ 
+    "message": "User restored successfully.", 
+    "user": { "id": 35 } 
+} 
+``` 
+</Tab> 
+<Tab title="404"> 
+❌ 404 Not Found 
+``` 
+{ "message": "No query results for model." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+``` 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Delete User (Force Delete)
+DELETE <Badge>/api/users/{id}</Badge>
+
+<Warning>This deletes only an archived user (<Badge>onlyArchived()</Badge> is used). Intended as force delete after archive.</Warning>
+
+**Authorization**
+- Policy: delete
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ "message": "User force deleted successfully." } 
+``` 
+</Tab> 
+<Tab title="404"> 
+❌ 404 Not Found 
+``` 
+{ "message": "No query results for model" } 
+``` 
+</Tab> 
+</Tabs>
+
+# Get Trainings by Instructor
+GET <Badge>/api/users/`{instructor_id}`/trainings</Badge>
+
+Returns instructor trainings with optional pagination and search.
+
+**Query Params**
+| Field                   | Type    | Required | Description              |
+| ----------------------- | ------- | -------- | ------------------------ |
+| <Badge>search</Badge>   | string  | ❌ No     | Search by training label |
+| <Badge>page</Badge>     | integer | ❌ No     | Default: 1               |
+| <Badge>per_page</Badge> | integer | ❌ No     | Default: 20              |
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK (Paginated trainings) 
+```json 
+{ 
+    "current_page": 1, 
+    "data": 
+    [ 
+        { 
+            "id": 10, 
+            "label": "React Basics", 
+            "instructor_id": 2 
+        } 
+    ] 
+} 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+```json 
+{ "message": "An unexpected error occurred." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Get Trainings by Student
+
+GET <Badge>/api/users/`{student_id}`/trainings</Badge>
+
+Returns public trainings purchased by a student, including deep quiz relationships.
+
+**Notes**
+
+- Filters trainings by is_public = true.
+
+- Loads nested relationships for quizzes/questions/options.
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+[ 
+    { 
+        "id": 1, 
+        "label": "Laravel Masterclass", 
+        "is_public": true 
+    } 
+] 
+``` 
+</Tab> 
+</Tabs>
+
+# Get Exams by Student
+GET <Badge>/api/users/`{student_id}`/exams</Badge>
+
+Returns standalone exams (quizzes) accessible to a student through PAID orders.
+
+**Behavior**
+- Only orders with status: <Badge>PAID_OFFLINE</Badge> or <Badge>PAID_ONLINE</Badge>
+
+- Returns unique quizzes
+
+- Excludes revoked access (<Badge>pivot.access_revoked = false</Badge>)
+
+- Only exams (no training_id/chapter_id)
+
+- Only published quizzes (<Badge>is_published = 1</Badge>)
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+[ 
+  { 
+    "id": 9, 
+    "title": "Final Exam - JS", 
+    "is_published": true 
+  } 
+] 
+``` 
+</Tab> 
+</Tabs>
+
+**Get Cart by Student**
+GET <Badge>/api/users/`{student_id}`/cart/{type}</Badge>
+
+Returns the most recent cart/order for a student filtered by type.
+
+**Notes**
+- Adds <Badge>coupon_code</Badge> if a coupon exists.
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ 
+  "id": 101, 
+  "student_id": 35, 
+  "coupon_code": "DISCOUNT10" 
+} 
+``` 
+</Tab> 
+</Tabs>
+
+# Get Orders by Student
+GET <Badge>/api/users/`{student_id}`/orders</Badge>
+
+Returns all orders for a student.
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```
+[ 
+  { 
+    "id": 1001, 
+    "student_id": 35, 
+    "order_status_id": 2 
+  } 
+] 
+``` 
+</Tab> 
+</Tabs>
+
+# Set Instructor Default Revenue Value (New)
+POST <Badge>/api/users/`{instructor_id}`/default-revenue</Badge>
+
+Sets the default revenue percentage for an instructor.
+
+**Auth**
+Requires logged-in user (<Badge>auth()->check()</Badge>).
+
+**Body (Validation Rules)**
+| Field                                     | Type   | Required | Description               |
+| ----------------------------------------- | ------ | -------- | ------------------------- |
+| <Badge>default_revenue_percentage</Badge> | number | ✅ Yes    | Must be between 0 and 100 |
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ 
+  "message": "Default revenue percentage updated successfully.", 
+  "default_revenue_percentage": 30 
+} 
+  ``` 
+</Tab> 
+<Tab title="400"> 
+⚠️ 400 Bad Request 
+``` 
+{ 
+  "message": "The given user is not an instructor." 
+} 
+``` 
+</Tab> 
+<Tab title="401"> 
+⚠️ 401 Unauthorized 
+``` 
+{ "message": "Unauthorized" } 
+``` 
+</Tab> 
+</Tabs>
+
+# Get All Instructors
+GET <Badge>/api/users/instructors</Badge>
+
+Returns a paginated list of instructors in the given company, with optional search.
+
+**Query Params**
+| Field                     | Type    | Required | Description                    |
+| ------------------------- | ------- | -------- | ------------------------------ |
+| <Badge>company_id</Badge> | integer | ✅ Yes    | Company ID                     |
+| <Badge>page</Badge>       | integer | ❌ No     | Default: 1                     |
+| <Badge>per_page</Badge>   | integer | ❌ No     | Default: 15                    |
+| <Badge>search</Badge>     | string  | ❌ No     | Search by first_name/last_name |
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK (Paginated instructors) 
+```json 
+{ 
+  "current_page": 1, 
+  "data": 
+  [ 
+    { 
+      "id": 2, 
+      "first_name": "Instructor", 
+      "last_name": "One" 
+    } 
+  ] 
+} 
+``` 
+</Tab> 
+</Tabs>
+
+# Get Instructor by ID
+GET <Badge>/api/users/instructors/`{id}`</Badge>
+
+Returns instructor details for the authenticated user's company.
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+``` 
+{ 
+  "id": 2, 
+  "role_id": 2, 
+  "company_id": 1 
+} 
+``` 
+</Tab> 
+<Tab title="404"> 
+❌ 404 Not Found 
+``` 
+{ "message": "Instructor not found or does not belong to your company." } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+``` 
+{ "message": "An error occurred while fetching the instructor." } 
+``` 
+</Tab> 
+</Tabs>
+
+# Download PDF Invoice by Order ID (New)
+GET <Badge>/api/users/orders/`{order_id}`/invoice</Badge>
+
+Downloads or displays the invoice PDF for a user's paid order.
+
+**Rules**
+- Only available when order status is:
+
+  - <Badge>PAID_ONLINE</Badge>
+
+  - <Badge>PAID_OFFLINE</Badge>
+
+- The order must belong to the authenticated user.
+
+**Response**
+<Tabs> 
+<Tab title="200"> 
+✅ 200 OK 
+```json 
+{ "note": "Response is a PDF stream with Content-Type: application/pdf" } 
+``` 
+</Tab> 
+<Tab title="404"> 
+❌ 404 Not Found 
+```
+{ "message": "Order not found or you do not have access to this order." } 
+``` 
+</Tab> 
+<Tab title="422"> 
+⚠️ 422 Unprocessable Entity 
+``` { "message": "Invoice is only available for paid orders. Current order status: Pending" } 
+``` 
+</Tab> 
+<Tab title="500"> 
+❌ 500 Internal Server Error 
+``` 
+{ "message": "Failed to generate invoice: <error details>" } 
+``` 
+</Tab> 
+</Tabs>
