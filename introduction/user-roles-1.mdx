@@ -1,63 +1,144 @@
 ---
 title: "User Roles"
-description: "User roles and access levels within the LMS platform."
+description: "Overview of user roles, responsibilities, and permissions within the LMS platform."
 ---
 
 # User Roles
 
-The LMS platform uses a **role-based access control (RBAC)** system to manage permissions and responsibilities.
+The LMS platform is built around a **role-based access control (RBAC)** system.  
+Each user is assigned a role that determines **what they can access, manage, and modify** across the platform.
 
-Each user is assigned a role that defines what actions they can perform.
+Roles are enforced at both:
+- **Backend level** (Laravel policies & permissions)
+- **Frontend level** (UI visibility & access control)
 
 ---
 
 ## Super Admin
-- Global system access
-- Manage companies and platform-level settings
-- Full access to all modules
-- Can override permissions if needed
+
+The **Super Admin** has full control over the entire platform.
+
+### Responsibilities
+- Manage all companies on the platform
+- Configure global platform settings
+- Manage roles and permissions
+- Access all users, trainings, exams, and orders
+- Override company-level restrictions when required
+
+### Notes
+- Super Admin users are excluded from standard user listings.
+- This role is reserved for platform owners or core system administrators.
 
 ---
 
-## Admin
-- Manages users within their company
-- Configures platform settings
-- Manages trainings, exams, and content
-- Controls landing page configuration
+## Admin (Company Administrator)
+
+The **Admin** manages the platform **within a specific company**.
+
+### Responsibilities
+- Manage company users (create, update, archive, restore, delete)
+- Assign and change user roles
+- Manage instructors and students
+- Configure company branding and landing page
+- Manage trainings, exams, and categories
+- View and manage orders and invoices
+
+### Access Scope
+- Limited to their own company data
+- Cannot access other companies’ data
 
 ---
 
 ## Instructor
-- Creates and manages trainings
-- Uploads lessons and quizzes
-- Views student progress
-- Has a public instructor profile
-- Revenue percentage configuration (if enabled)
+
+The **Instructor** role is responsible for creating and managing educational content.
+
+### Responsibilities
+- Create and manage trainings
+- Upload lessons, videos, and materials
+- Create quizzes and exams
+- View student enrollments and performance
+- Maintain a public instructor profile
+
+### Public Profile
+Instructors can have a **public profile** including:
+- Skills and biography
+- Contact and social links
+- Profile visibility settings
+
+### Important Rules
+- If an instructor already has trainings assigned, their role **cannot be changed**
+- Instructor profiles may be hidden automatically when role changes
 
 ---
 
 ## Student
-- Enrolls in trainings
-- Takes exams and quizzes
-- Accesses purchased content
-- Downloads invoices
-- Views progress and results
+
+The **Student** is the primary consumer of the learning content.
+
+### Responsibilities
+- Browse available trainings and exams
+- Purchase trainings or exams
+- Access enrolled content
+- Take quizzes and exams
+- Download invoices for paid orders
+
+### Access Scope
+- Students only access content they have purchased
+- Exam access can be revoked at order level
 
 ---
 
-## Permission System
+## Content Manager
 
-- Permissions are attached to roles
-- Backend policies enforce access control
-- Frontend UI adapts based on role permissions
-- Unauthorized actions are blocked at API level
+The **Content Manager** focuses on **content organization and presentation**, without full administrative privileges.
+
+### Responsibilities
+- Manage trainings and exams content
+- Organize featured trainings and exams
+- Configure landing page sections (featured categories, partner companies)
+- Control display order and visibility
+
+### Limitations
+- Cannot manage users or roles
+- Cannot access billing or system-level settings
 
 ---
 
-## Notes
-- A user’s role can be changed unless restricted by business rules (e.g. instructor with active trainings).
-- Archived or deleted users cannot access the platform.
+## Role & Permission System
+
+### How Permissions Work
+- Each role has a defined set of permissions
+- Permissions are enforced using Laravel policies
+- API endpoints validate permissions before executing actions
+
+### Frontend Behavior
+- UI components are displayed based on role permissions
+- Unauthorized actions are hidden or disabled
+- Backend always acts as the final authority
 
 ---
 
-👉 Continue to the next sections to explore **API References** and **technical details**.
+## User Lifecycle States
+
+A user can be in one of the following states:
+- **Active** – full access based on role
+- **Blocked** – access temporarily disabled
+- **Archived** – user removed from active usage but kept for history
+- **Deleted** – permanently removed from the system
+
+---
+
+## Summary
+
+| Role | Scope | Primary Focus |
+| --- | --- | --- |
+| Super Admin | Global | Platform management |
+| Admin | Company | Users, content, configuration |
+| Content Manager | Company | Content & landing page |
+| Instructor | Company | Trainings & exams |
+| Student | Company | Learning & exams |
+
+---
+
+👉 Continue to the next sections to explore **API References** and **technical implementation details**.
