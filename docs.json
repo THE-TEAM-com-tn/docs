@@ -9,108 +9,112 @@
   },
   "favicon": "/favicon.svg",
  "navigation": {
-    "tabs": [
+  "global": {
+    "anchors": [
       {
-        "tab": "LMS Documentation",
-        "groups": [
-          {
-            "group": "Introduction",
-            "pages": [
-              "index",
-              "introduction/overview",
-              "introduction/key-features",
-              "introduction/user-roles"
-            ]
-          },
-          {
-            "group": "Getting Started",
-            "pages": [
-              "getting-started/access-and-authentication",
-              "getting-started/environment-setup",
-              "getting-started/first-steps"
-            ]
-          },
-          {
-            "group": "System Design",
-            "pages": [
-              "system-design/global-architecture",
-              "system-design/frontend-architecture",
-              "system-design/backend-architecture",
-              "system-design/database-design"
-            ]
-          },
-          {
-            "group": "Modules",
-            "pages": [
-              "modules/authentication",
-              "modules/user-management",
-              "modules/course-management",
-              "modules/enrollment-and-progress",
-              "modules/assessments"
-            ]
-          },
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/overview",
-              {
-                "group": "Authentication",
-                "pages": [
-                  "api-reference/authentication/auth-Logins-Register",
-                  "api-reference/authentication/email-verification",
-                  "api-reference/authentication/password-management",
-                  "api-reference/authentication/security"
-                ]
-              },
-              "api-reference/users",
-              "api-reference/companies",
-              "api-reference/landing-page"
-            ]
-          },
-          {
-            "group": "PMO & Workflow",
-            "pages": [
-              "pmo-and-workflow/project-methodology",
-              "pmo-and-workflow/jira-workflow",
-              "pmo-and-workflow/backlog-management",
-              "pmo-and-workflow/sprint-and-kanban"
-            ]
-          },
-          {
-            "group": "Development Guide",
-            "pages": [
-              "development-guide/frontend-guide",
-              "development-guide/backend-guide",
-              "development-guide/coding-standards",
-              "development-guide/branching-strategy"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "deployment/environments",
-              "deployment/build-and-release",
-              "deployment/monitoring-and-logs"
-            ]
-          }
-        ]
+        "anchor": "Documentation",
+        "icon": "book-open-cover",
+        "href": "https://mintlify.com/docs"
+      },
+      {
+        "anchor": "Blog",
+        "icon": "newspaper",
+        "href": "https://mintlify.com/blog"
       }
-    ],
-    "global": {
-      "anchors": [
+    ]
+  },
+  "tabs": [
+    {
+      "tab": "LMS Documentation",
+      "groups": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "group": "Introduction",
+          "pages": [
+            "index",
+            "introduction/overview",
+            "introduction/key-features",
+            "introduction/user-roles"
+          ]
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "group": "Getting Started",
+          "pages": [
+            "getting-started/access-and-authentication",
+            "getting-started/environment-setup",
+            "getting-started/first-steps"
+          ]
+        },
+        {
+          "group": "System Design",
+          "pages": [
+            "system-design/global-architecture",
+            "system-design/frontend-architecture",
+            "system-design/backend-architecture",
+            "system-design/database-design"
+          ]
+        },
+        {
+          "group": "Modules",
+          "pages": [
+            "modules/authentication",
+            "modules/user-management",
+            "modules/course-management",
+            "modules/enrollment-and-progress",
+            "modules/assessments"
+          ]
+        },
+        {
+          "group": "API Reference",
+          "pages": [
+            "api-reference/overview",
+            {
+              "group": "Authentication",
+              "pages": [
+                "api-reference/Authentication/auth-logins-register",
+                "api-reference/Authentication/email-verification",
+                "api-reference/Authentication/password-management",
+                "api-reference/Authentication/security",
+                "api-reference/authentication/auth-Logins-Register",
+                "api-reference/authentication/email-verification",
+                "api-reference/authentication/password-management",
+                "api-reference/authentication/security"
+              ]
+            },
+            "api-reference/users",
+            "api-reference/companies",
+            "api-reference/landing-page"
+          ]
+        },
+        {
+          "group": "PMO & Workflow",
+          "pages": [
+            "pmo-and-workflow/project-methodology",
+            "pmo-and-workflow/jira-workflow",
+            "pmo-and-workflow/backlog-management",
+            "pmo-and-workflow/sprint-and-kanban"
+          ]
+        },
+        {
+          "group": "Development Guide",
+          "pages": [
+            "development-guide/frontend-guide",
+            "development-guide/backend-guide",
+            "development-guide/coding-standards",
+            "development-guide/branching-strategy"
+          ]
+        },
+        {
+          "group": "Deployment",
+          "pages": [
+            "deployment/environments",
+            "deployment/build-and-release",
+            "deployment/monitoring-and-logs"
+          ]
         }
       ]
     }
-  },
+  ]
+},
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
