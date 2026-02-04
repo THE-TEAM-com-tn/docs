@@ -73,11 +73,7 @@
                 "api-reference/Authentication/auth-logins-register",
                 "api-reference/Authentication/email-verification",
                 "api-reference/Authentication/password-management",
-                "api-reference/Authentication/security",
-                "api-reference/authentication/auth-Logins-Register",
-                "api-reference/authentication/email-verification",
-                "api-reference/authentication/password-management",
-                "api-reference/authentication/security"
+                "api-reference/Authentication/security"
               ]
             },
             "api-reference/users",
