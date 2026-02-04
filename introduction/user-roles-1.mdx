@@ -1,5 +1,63 @@
 ---
-title: "user-roles"
+title: "User Roles"
+description: "User roles and access levels within the LMS platform."
 ---
 
-.
+# User Roles
+
+The LMS platform uses a **role-based access control (RBAC)** system to manage permissions and responsibilities.
+
+Each user is assigned a role that defines what actions they can perform.
+
+---
+
+## Super Admin
+- Global system access
+- Manage companies and platform-level settings
+- Full access to all modules
+- Can override permissions if needed
+
+---
+
+## Admin
+- Manages users within their company
+- Configures platform settings
+- Manages trainings, exams, and content
+- Controls landing page configuration
+
+---
+
+## Instructor
+- Creates and manages trainings
+- Uploads lessons and quizzes
+- Views student progress
+- Has a public instructor profile
+- Revenue percentage configuration (if enabled)
+
+---
+
+## Student
+- Enrolls in trainings
+- Takes exams and quizzes
+- Accesses purchased content
+- Downloads invoices
+- Views progress and results
+
+---
+
+## Permission System
+
+- Permissions are attached to roles
+- Backend policies enforce access control
+- Frontend UI adapts based on role permissions
+- Unauthorized actions are blocked at API level
+
+---
+
+## Notes
+- A user’s role can be changed unless restricted by business rules (e.g. instructor with active trainings).
+- Archived or deleted users cannot access the platform.
+
+---
+
+👉 Continue to the next sections to explore **API References** and **technical details**.

@@ -1,6 +1,63 @@
 ---
-title: "overview"
+title: "Platform Overview"
+description: "High-level overview of the LMS platform architecture and workflow."
 ---
 
+# Platform Overview
 
-.
+The LMS platform is built as a **modern web-based learning system** that allows organizations to manage trainings, exams, instructors, students, and content through a centralized interface.
+
+The system follows a **client–server architecture**, separating frontend presentation from backend business logic.
+
+---
+
+## High-Level Architecture
+
+The platform consists of three main layers:
+
+### 1. Frontend (Web Application)
+- Built with **Flutter Web**
+- Uses **CanvasKit renderer** for high performance
+- Handles UI, user interactions, and state management
+
+### 2. Backend (API Layer)
+- Built with **Laravel**
+- Exposes RESTful APIs
+- Manages authentication, authorization, business rules, and data persistence
+
+### 3. Database & Storage
+- Relational database (MySQL)
+- File storage for images, videos, PDFs, and assets
+
+---
+
+## Core Functional Areas
+
+- **User & Role Management**
+- **Trainings & Courses**
+- **Exams & Quizzes**
+- **Orders & Payments**
+- **Landing Page Customization**
+- **Company & Platform Configuration**
+
+---
+
+## Data Flow (Simplified)
+
+1. User interacts with the frontend (Flutter Web)
+2. Frontend calls backend APIs via HTTP (Dio + Retrofit)
+3. Backend processes the request and returns JSON responses
+4. Frontend updates UI state using Providers
+
+---
+
+## Design Philosophy
+
+- Modular and scalable
+- API-first approach
+- Clear separation of concerns
+- Multi-company and multi-role ready
+
+---
+
+👉 Next, explore the **Key Features** that make this LMS powerful.
